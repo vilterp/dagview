@@ -11,7 +11,7 @@ injected into it such that when you hover over a node:
 
 It looks like this:
 
-![dag view](./examples/example.png)
+![dag view](./example/example.png)
 
 ## Usage
 
