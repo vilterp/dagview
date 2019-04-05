@@ -1,7 +1,8 @@
 # DagView
 
 Takes SVG output from GraphViz, and returns SVG with some JS and CSS
-injected into it such that when you hover over a node:
+injected into it such that when you open it in your browser and
+hover over a node:
 
 - The node gets highlighted red
 - The edges coming out of it become red
