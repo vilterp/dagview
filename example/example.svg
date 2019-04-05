@@ -655,77 +655,122 @@
 <polygon fill="#000000" stroke="#000000" points="1212.2817,-290.2501 1207.2816,-292 1212.2816,-293.7501 1212.2817,-290.2501"/>
 </g>
 </g>
+<style type="text/css">
+.node path {
+    fill: #afeeee;
+    stroke: #afeeee;
+}
+.node.selected path {
+    fill: red;
+    stroke: red;
+}
+.node.selected-in path {
+    stroke: green;
+}
+.node.selected-out path {
+    stroke: red;
+}
+
+.edge path {
+    stroke: black;
+}
+.edge.selected-in path {
+    stroke: green;
+}
+.edge.selected-out path {
+    stroke: red;
+}
+</style>
 <script type="text/javascript"><![CDATA[
     function addListenersToNodes() {
         const nodes = document.querySelectorAll(".node");
         nodes.forEach(node => {
-            node.addEventListener("mouseover", (evt) => {
-                evt.preventDefault();
+            node.addEventListener("mouseover", evt => {
                 const name = node.querySelector("title").innerHTML;
                 updateSelection(name, node);
+            });
+            node.addEventListener("mouseout", evt => {
+                reset();
             });
         });
     }
 
-    function addEdge(obj, from, node) {
+    function addEdge(obj, from, to, node) {
         let edges = obj[from];
         if (!edges) {
             edges = [];
             obj[from] = edges;
         }
-        edges.push(node);
+        edges.push({
+            node,
+            to,
+            from,
+        });
     }
 
-    function buildEdges() {
+    function edgesAndNodesByName() {
         const outEdges = {}; // node name (string) => [edge DOM node]
         const inEdges = {}; // node name (string) => [edge DOM node]
-        const edges = document.querySelectorAll(".edge");
-        edges.forEach(edge => {
+        const edgeNodes = document.querySelectorAll(".edge");
+        edgeNodes.forEach(edge => {
             const title = edge.querySelector("title").innerHTML;
             const [from, to] = title.split("-&gt;");
-            addEdge(outEdges, from, edge);
-            addEdge(inEdges, to, edge);
+            addEdge(outEdges, from, to, edge);
+            addEdge(inEdges, to, from, edge);
         });
-        return { outEdges, inEdges };
+        const nodeNodes = document.querySelectorAll(".node");
+        const nodes = {}; // node name => node DOM nodee
+        nodeNodes.forEach(node => {
+            const title = node.querySelector("title").innerHTML;
+            nodes[title] = node;
+        });
+        return { nodes, outEdges, inEdges };
     }
 
     let selectedNode = null;
+    let depNodes = [];
     let selectedEdges = [];
-    function updateSelection(name, node) {
+
+    function reset() {
         if (selectedNode) {
-            showAsUnselected(selectedNode);
+            selectedNode.classList.remove("selected");
         }
-        showAsSelected(node);
+        selectedEdges.forEach(edge => {
+            edge.classList.remove("selected-in");
+            edge.classList.remove("selected-out");
+        });
+        selectedEdges = [];
+        depNodes.forEach(node => {
+            node.classList.remove("selected-in");
+            node.classList.remove("selected-out");
+        });
+        depNodes = [];
+    }
+
+    function updateSelection(name, node) {
+        reset();
+
+        node.classList.add("selected");
         selectedNode = node;
 
-        // clear old edges
-        selectedEdges.forEach(edge => {
-            edge.querySelector("path").setAttribute("stroke", "black");
-        });
-
         // highlight edges
-        selectedEdges = [];
-        (outEdges[name] || []).forEach(edgeNode => {
-            edgeNode.querySelector("path").setAttribute("stroke", "red");
-            selectedEdges.push(edgeNode);
+        (outEdges[name] || []).forEach(outEdge => {
+            outEdge.node.classList.add("selected-out");
+            selectedEdges.push(outEdge.node);
+            const node = nodes[outEdge.to];
+            node.classList.add("selected-out");
+            depNodes.push(node);
         });
-        (inEdges[name] || []).forEach(edgeNode => {
-            edgeNode.querySelector("path").setAttribute("stroke", "green");
-            selectedEdges.push(edgeNode);
+        (inEdges[name] || []).forEach(inEdge => {
+            inEdge.node.classList.add("selected-in");
+            selectedEdges.push(inEdge.node);
+            const node = nodes[inEdge.to];
+            node.classList.add("selected-in");
+            depNodes.push(node);
         });
     }
 
-    function showAsSelected(node) {
-        node.querySelector("path").setAttribute("fill", "red");
-        node.querySelector("path").setAttribute("stroke", "red");
-    }
-
-    function showAsUnselected(node) {
-        node.querySelector("path").setAttribute("fill", "#afeeee");
-        node.querySelector("path").setAttribute("stroke", "#afeeee");
-    }
-
-    const { outEdges, inEdges } = buildEdges();
+    const { nodes, outEdges, inEdges } = edgesAndNodesByName();
     addListenersToNodes();
 ]]></script>
 </svg>
