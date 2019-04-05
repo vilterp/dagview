@@ -685,11 +685,11 @@
     function addListenersToNodes() {
         const nodes = document.querySelectorAll(".node");
         nodes.forEach(node => {
-            node.addEventListener("mouseover", evt => {
+            node.addEventListener("mouseenter", evt => {
                 const name = node.querySelector("title").innerHTML;
                 updateSelection(name, node);
             });
-            node.addEventListener("mouseout", evt => {
+            node.addEventListener("mouseleave", evt => {
                 reset();
             });
         });
@@ -754,20 +754,28 @@
         selectedNode = node;
 
         // highlight edges
-        (outEdges[name] || []).forEach(outEdge => {
+        const outFromThis = outEdges[name] || [];
+        outFromThis.forEach(outEdge => {
             outEdge.node.classList.add("selected-out");
             selectedEdges.push(outEdge.node);
             const node = nodes[outEdge.to];
             node.classList.add("selected-out");
             depNodes.push(node);
         });
-        (inEdges[name] || []).forEach(inEdge => {
+        const inToThis = inEdges[name] || [];
+        inToThis.forEach(inEdge => {
             inEdge.node.classList.add("selected-in");
             selectedEdges.push(inEdge.node);
             const node = nodes[inEdge.to];
             node.classList.add("selected-in");
             depNodes.push(node);
         });
+
+        console.log(
+            "selected:", name,
+            "out edges:", outFromThis.map(n => n.to),
+            "in edges:", inToThis.map(n => n.to),
+        );
     }
 
     const { nodes, outEdges, inEdges } = edgesAndNodesByName();
