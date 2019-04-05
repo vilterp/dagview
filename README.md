@@ -13,6 +13,7 @@ hover over a node:
 It looks like this:
 
 ![dag view](./example/example.png)
+[Live Demo](https://amazing-feynman-ce1493.netlify.com/example.svg)
 
 ## Usage
 
