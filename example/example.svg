@@ -689,9 +689,9 @@
                 const name = node.querySelector("title").innerHTML;
                 updateSelection(name, node);
             });
-            node.addEventListener("mouseleave", evt => {
-                reset();
-            });
+            // node.addEventListener("mouseleave", evt => {
+            //     reset();
+            // });
         });
     }
 
