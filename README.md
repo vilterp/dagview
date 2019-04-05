@@ -1,14 +1,15 @@
 # DagView
 
 Takes SVG output from GraphViz, and returns SVG with some JS and CSS
-injected into it such that when you open it in your browser and
-hover over a node:
+injected into that makes it interactive.
+
+When you open the resulting SVG in a browser and hover over a node:
 
 - The node gets highlighted red
 - The edges coming out of it become red
 - The edges coming into it become green
 - The nodes on the end of out edges are circled in red
-- The nodes on the end of in edgees are circled in green
+- The nodes on the end of in edges are circled in green
 
 It looks like this:
 
