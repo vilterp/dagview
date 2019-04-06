@@ -45,7 +45,14 @@ const template = `
 				<h2>In Edges</h2>
 				<ul>
 					{{#each inEdges}}
-						<li class="node-name" onClick="updateSelection('{{to}}')">{{to}}</li>
+						<li
+							class="node-name"
+							onClick="updateSelection('{{to}}')"
+							onMouseOver="showHovered('{{to}}')"
+							onMouseOut="unShowHovered('{{to}}')"
+						>
+							{{to}}
+						</li>
 					{{/each}}
 				</ul>
 			</div>
@@ -53,7 +60,14 @@ const template = `
 				<h2>Out Edges</h2>
 				<ul>
 					{{#each outEdges}}
-						<li class="node-name" onClick="updateSelection('{{to}}')">{{to}}</li>
+						<li
+							class="node-name"
+							onClick="updateSelection('{{to}}')"
+							onMouseOver="showHovered('{{to}}')"
+							onMouseOut="unShowHovered('{{to}}')"
+						>
+							{{to}}
+						</li>
 					{{/each}}
 				</ul>
 			</div>
@@ -93,6 +107,9 @@ const Style = `
 	font-family: monospace;
 	cursor: pointer;
 }
+.node-name:hover {
+	color: orange;
+}
 h2 {
 	font-family: sans-serif;
 }
@@ -109,6 +126,10 @@ h2 {
 .node path {
     fill: #afeeee;
     stroke: #afeeee;
+}
+.node.selected-in.hovered path, .node.selected-out.hovered path {
+	fill: orange;
+	stroke: orange;
 }
 .node.selected path {
     fill: red;
@@ -242,6 +263,15 @@ function updateSelection(name) {
 			inEdges: inToThis,
 			outEdges: outFromThis,
 		});
+}
+
+function showHovered(name) {
+	debugger;
+	nodes[name].classList.add("hovered");
+}
+
+function unShowHovered(name) {
+	nodes[name].classList.remove("hovered");
 }
 
 const { nodes, outEdges, inEdges } = edgesAndNodesByName();
