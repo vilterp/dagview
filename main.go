@@ -64,9 +64,6 @@ const template = `
 	<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.5.0/dist/svg-pan-zoom.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/handlebars@4.1.1/dist/handlebars.min.js"></script>
 	<script>
-		svgPanZoom("#viz");
-	</script>
-	<script>
 		%s
 	</script>
 	<style>
@@ -87,9 +84,10 @@ const Style = `
 	right: 0;
 	top: 0;
 	width: 300px;
-	background: rgb(220, 220, 220, 0.5);
+	background: rgb(220, 220, 220, 0.9);
 	padding-left: 10px;
 	padding-right: 10px;
+	overflow: scroll;
 }
 .node-name {
 	font-family: monospace;
@@ -253,5 +251,8 @@ window.addEventListener("popstate", (evt) => {
 	if (evt.state.name) {
 		updateSelection(evt.state.name);
 	}
+});
+svgPanZoom("#viz", {
+	maxZoom: 100
 });
 `
