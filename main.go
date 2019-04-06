@@ -19,36 +19,95 @@ func main() {
 	if err != nil {
 		log.Fatal("error parsing XML: ", err)
 	}
-	if err := insertScriptAndStyle(tree); err != nil {
-		log.Fatal("failed inserting script and style: ", err)
-	}
-	_, err = tree.WriteTo(os.Stdout)
+	doc := etree.NewDocument()
+	g := getSvgChild(tree)
+	doc.Element = *g
+	str, err := doc.WriteToString()
 	if err != nil {
-		log.Fatal("error writing output: ", err)
+		log.Fatal(err)
 	}
+	fmt.Printf(template, str, Script, Style)
 }
 
-func insertScriptAndStyle(tree *etree.Document) error {
-	styleEl := etree.NewElement("style")
-	styleEl.AddChild(etree.NewCData(Style))
+const template = `
+<!DOCTYPE html>
+<html>
+	<body style="margin: 0">
+		<svg id="viz" style="width: 100%%; height: 100vh;">
+			%s
+		</svg>
+		<script id="panel-template" type="text/x-handlebars-template">
+			<div id="selected-area">
+				<h2>Selected</h2>
+				<span class="node-name">{{selected}}</span>
+			</div>
+			<div id="in-edges-list">
+				<h2>In Edges</h2>
+				<ul>
+					{{#each inEdges}}
+						<li class="node-name" onClick="updateSelection('{{to}}')">{{to}}</li>
+					{{/each}}
+				</ul>
+			</div>
+			<div id="out-edges-list">
+				<h2>Out Edges</h2>
+				<ul>
+					{{#each outEdges}}
+						<li class="node-name" onClick="updateSelection('{{to}}')">{{to}}</li>
+					{{/each}}
+				</ul>
+			</div>
+		</script>
+		<div id="panel">
+		</div>
+	</body>
+	<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.5.0/dist/svg-pan-zoom.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/handlebars@4.1.1/dist/handlebars.min.js"></script>
+	<script>
+		svgPanZoom("#viz");
+	</script>
+	<script>
+		%s
+	</script>
+	<style>
+		%s
+	</style>
+</html>
+`
 
-	scriptEl := etree.NewElement("script")
-	scriptEl.AddChild(etree.NewCData(Script))
-
-	for _, c := range tree.Child {
-		switch el := c.(type) {
-		case *etree.Element:
-			if el.Tag == "svg" {
-				el.AddChild(styleEl)
-				el.AddChild(scriptEl)
-				return nil
-			}
-		}
-	}
-	return fmt.Errorf("didn't find an <svg> element at the root")
+func getSvgChild(tree *etree.Document) *etree.Element {
+	path := etree.MustCompilePath("/svg/g")
+	return tree.FindElementPath(path)
 }
 
 const Style = `
+#panel {
+	position: absolute;
+	height: 100vh;
+	right: 0;
+	top: 0;
+	width: 300px;
+	background: rgb(220, 220, 220, 0.5);
+	padding-left: 10px;
+	padding-right: 10px;
+}
+.node-name {
+	font-family: monospace;
+	cursor: pointer;
+}
+h2 {
+	font-family: sans-serif;
+}
+#selected-area {
+	color: red;
+}
+#in-edges-list {
+	color: green;
+}
+#out-edges-list {
+	color: blue;
+}
+
 .node path {
     fill: #afeeee;
     stroke: #afeeee;
@@ -57,11 +116,22 @@ const Style = `
     fill: red;
     stroke: red;
 }
+.node.selected text {
+  fill: white;
+}
 .node.selected-in path {
     stroke: green;
+		fill: green;
+}
+.node.selected-in text {
+  fill: white;
 }
 .node.selected-out path {
-    stroke: red;
+    stroke: blue;
+		fill: blue;
+}
+.node.selected-out text {
+  fill: white;
 }
 
 .edge path {
@@ -71,21 +141,21 @@ const Style = `
     stroke: green;
 }
 .edge.selected-out path {
-    stroke: red;
+    stroke: blue;
 }
 `
 
 const Script = `
+const panelTemplate = Handlebars.compile(document.getElementById("panel-template").innerHTML);
+
 function addListenersToNodes() {
 		const nodes = document.querySelectorAll(".node");
 		nodes.forEach(node => {
-				node.addEventListener("mouseenter", evt => {
+				node.addEventListener("click", evt => {
+						evt.preventDefault();
 						const name = node.querySelector("title").innerHTML;
-						updateSelection(name, node);
+						updateSelection(name);
 				});
-				// node.addEventListener("mouseleave", evt => {
-				//     reset();
-				// });
 		});
 }
 
@@ -141,8 +211,12 @@ function reset() {
 		depNodes = [];
 }
 
-function updateSelection(name, node) {
+function updateSelection(name) {
 		reset();
+
+		history.pushState({ name }, name, "#" + name);
+
+		const node = nodes[name];
 
 		node.classList.add("selected");
 		selectedNode = node;
@@ -165,13 +239,19 @@ function updateSelection(name, node) {
 				depNodes.push(node);
 		});
 
-		console.log(
-				"selected:", name,
-				"out edges:", outFromThis.map(n => n.to),
-				"in edges:", inToThis.map(n => n.to),
-		);
+		document.getElementById("panel").innerHTML = panelTemplate({
+			selected: name,
+			inEdges: inToThis,
+			outEdges: outFromThis,
+		});
 }
 
 const { nodes, outEdges, inEdges } = edgesAndNodesByName();
 addListenersToNodes();
+window.addEventListener("popstate", (evt) => {
+	console.log("popstate", evt.state);
+	if (evt.state.name) {
+		updateSelection(evt.state.name);
+	}
+});
 `

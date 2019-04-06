@@ -1,6 +1,6 @@
 # DagView
 
-Takes SVG output from GraphViz, and returns SVG with some JS and CSS
+Takes SVG output from GraphViz, and returns HTML with some JS and CSS
 injected into it such that when you open it in your browser and
 hover over a node:
 
@@ -21,7 +21,7 @@ It looks like this:
 cat myfile.dot \
   | dot -Tsvg \
   | dagview \
-  > out.svg
+  > out.html
 ```
  
 ...and open up `out.svg` in your browser.
