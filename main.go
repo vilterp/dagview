@@ -123,29 +123,29 @@ h2 {
 	color: blue;
 }
 
-.node path {
+.node polygon {
     fill: #afeeee;
     stroke: #afeeee;
 }
-.node.selected-in.hovered path, .node.selected-out.hovered path {
+.node.selected-in.hovered polygon, .node.selected-out.hovered polygon {
 	fill: orange;
 	stroke: orange;
 }
-.node.selected path {
+.node.selected polygon {
     fill: red;
     stroke: red;
 }
 .node.selected text {
   fill: white;
 }
-.node.selected-in path {
+.node.selected-in polygon {
     stroke: green;
 		fill: green;
 }
 .node.selected-in text {
   fill: white;
 }
-.node.selected-out path {
+.node.selected-out polygon {
     stroke: blue;
 		fill: blue;
 }
@@ -172,7 +172,7 @@ function addListenersToNodes() {
 		nodes.forEach(node => {
 				node.addEventListener("click", evt => {
 						evt.preventDefault();
-						const name = node.querySelector("title").innerHTML;
+						const name = node.getAttribute("id");
 						updateSelection(name);
 				});
 		});
@@ -196,16 +196,16 @@ function edgesAndNodesByName() {
 		const inEdges = {}; // node name (string) => [edge DOM node]
 		const edgeNodes = document.querySelectorAll(".edge");
 		edgeNodes.forEach(edge => {
-				const title = edge.querySelector("title").innerHTML;
-				const [from, to] = title.split("-&gt;");
+				const title = edge.getAttribute("id");
+				const [from, to] = title.split("->");
 				addEdge(outEdges, from, to, edge);
 				addEdge(inEdges, to, from, edge);
 		});
 		const nodeNodes = document.querySelectorAll(".node");
 		const nodes = {}; // node name => node DOM nodee
 		nodeNodes.forEach(node => {
-				const title = node.querySelector("title").innerHTML;
-				nodes[title] = node;
+				const name = node.getAttribute("id");
+				nodes[name] = node;
 		});
 		return { nodes, outEdges, inEdges };
 }
@@ -266,7 +266,6 @@ function updateSelection(name) {
 }
 
 function showHovered(name) {
-	debugger;
 	nodes[name].classList.add("hovered");
 }
 
