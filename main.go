@@ -37,40 +37,70 @@ const template = `
 			%s
 		</svg>
 		<script id="panel-template" type="text/x-handlebars-template">
-			<div id="selected-area">
-				<h2>Selected</h2>
-				<span class="node-name">{{selected}}</span>
-			</div>
-			<div id="in-edges-list">
-				<h2>In Edges</h2>
+			{{#if nodeInfo}}
+				<div id="selected-area">
+					<h2>Selected</h2>
+					<span class="node-name">{{nodeInfo.selected}}</span>
+				</div>
+				<div id="in-edges-list">
+					<h2>In Edges</h2>
+					<ul>
+						{{#each nodeInfo.inEdges}}
+							<li
+								class="node-name"
+								onClick="updateSelection('{{to}}')"
+								onMouseOver="showHovered('{{to}}')"
+								onMouseOut="unShowHovered('{{to}}')"
+							>
+								{{to}}
+							</li>
+						{{/each}}
+					</ul>
+				</div>
+				<div id="out-edges-list">
+					<h2>Out Edges</h2>
+					<ul>
+						{{#each nodeInfo.outEdges}}
+							<li
+								class="node-name"
+								onClick="updateSelection('{{to}}')"
+								onMouseOver="showHovered('{{to}}')"
+								onMouseOut="unShowHovered('{{to}}')"
+							>
+								{{to}}
+							</li>
+						{{/each}}
+					</ul>
+				</div>
+			{{/if}}
+			{{#if graphInfo}}
+				<h2>Tops</h2>
 				<ul>
-					{{#each inEdges}}
+					{{#each graphInfo.tops}}
 						<li
 							class="node-name"
-							onClick="updateSelection('{{to}}')"
-							onMouseOver="showHovered('{{to}}')"
-							onMouseOut="unShowHovered('{{to}}')"
+							onClick="updateSelection('{{.}}')"
+							onMouseOver="showHovered('{{.}}')"
+							onMouseOut="unShowHovered('{{.}}')"
 						>
-							{{to}}
+							{{.}}
 						</li>
 					{{/each}}
 				</ul>
-			</div>
-			<div id="out-edges-list">
-				<h2>Out Edges</h2>
+				<h2>Bottoms</h2>
 				<ul>
-					{{#each outEdges}}
+					{{#each graphInfo.bottoms}}
 						<li
 							class="node-name"
-							onClick="updateSelection('{{to}}')"
-							onMouseOver="showHovered('{{to}}')"
-							onMouseOut="unShowHovered('{{to}}')"
+							onClick="updateSelection('{{.}}')"
+							onMouseOver="showHovered('{{.}}')"
+							onMouseOut="unShowHovered('{{.}}')"
 						>
-							{{to}}
+							{{.}}
 						</li>
 					{{/each}}
 				</ul>
-			</div>
+			{{/if}}
 		</script>
 		<div id="panel">
 		</div>
@@ -93,57 +123,59 @@ func getSvgChild(tree *etree.Document) *etree.Element {
 
 const Style = `
 #panel {
-	position: absolute;
-	height: 100vh;
-	right: 0;
-	top: 0;
-	width: 300px;
-	background: rgb(220, 220, 220, 0.9);
-	padding-left: 10px;
-	padding-right: 10px;
-	overflow: scroll;
+		position: absolute;
+		height: 100vh;
+		right: 0;
+		top: 0;
+		width: 300px;
+		background: rgb(220, 220, 220, 0.9);
+		padding-left: 10px;
+		padding-right: 10px;
+		overflow: scroll;
 }
 .node-name {
-	font-family: monospace;
-	cursor: pointer;
+		font-family: monospace;
+		cursor: pointer;
 }
 .node-name:hover {
-	color: orange;
+		color: orange;
 }
 h2 {
-	font-family: sans-serif;
+		font-family: sans-serif;
 }
 #selected-area {
-	color: red;
+		color: red;
 }
 #in-edges-list {
-	color: green;
+		color: green;
 }
 #out-edges-list {
-	color: blue;
+		color: blue;
 }
 
 .node polygon {
     fill: #afeeee;
     stroke: #afeeee;
 }
-.node.selected-in.hovered polygon, .node.selected-out.hovered polygon {
-	fill: orange;
-	stroke: orange;
+.node.hovered polygon,
+.node.selected-in.hovered polygon,
+.node.selected-out.hovered polygon {
+		fill: orange;
+		stroke: orange;
 }
 .node.selected polygon {
     fill: red;
     stroke: red;
 }
 .node.selected text {
-  fill: white;
+  	fill: white;
 }
 .node.selected-in polygon {
     stroke: green;
 		fill: green;
 }
 .node.selected-in text {
-  fill: white;
+  	fill: white;
 }
 .node.selected-out polygon {
     stroke: blue;
@@ -228,6 +260,7 @@ function reset() {
 				node.classList.remove("selected-out");
 		});
 		depNodes = [];
+		updateSidebar({});
 }
 
 function updateSelection(name) {
@@ -236,6 +269,10 @@ function updateSelection(name) {
 		history.pushState({ name }, name, "#" + name);
 
 		const node = nodes[name];
+		if (node === selectedNode) {
+				selectedNode = null;
+				return;
+		}
 
 		node.classList.add("selected");
 		selectedNode = node;
@@ -257,31 +294,61 @@ function updateSelection(name) {
 				node.classList.add("selected-in");
 				depNodes.push(node);
 		});
-
-		document.getElementById("panel").innerHTML = panelTemplate({
-			selected: name,
-			inEdges: inToThis,
-			outEdges: outFromThis,
+		
+		updateSidebar({
+				nodeInfo: {
+						selected: name,
+						inEdges: inToThis,
+						outEdges: outFromThis,
+				},
 		});
 }
 
+function updateSidebar(info) {
+		if (!info.nodeInfo) {
+				info.graphInfo = {
+						tops: tops,
+						bottoms: bottoms,
+				};
+		}
+		document.getElementById("panel").innerHTML = panelTemplate(info);
+}
+
+function getTopsAndBottoms(nodes, outEdges, inEdges) {
+		const tops = [];
+		const bottoms = [];
+		Object.keys(nodes).forEach((name) => {
+				const outFromThis = outEdges[name] || [];
+				const inToThis = inEdges[name] || [];
+				if (outFromThis.length === 0) {
+						bottoms.push(name);
+				}
+				if (inToThis.length === 0) {
+						tops.push(name);
+				}
+		});
+		return { tops, bottoms };
+}
+
 function showHovered(name) {
-	nodes[name].classList.add("hovered");
+		nodes[name].classList.add("hovered");
 }
 
 function unShowHovered(name) {
-	nodes[name].classList.remove("hovered");
+		nodes[name].classList.remove("hovered");
 }
 
 const { nodes, outEdges, inEdges } = edgesAndNodesByName();
+const { tops, bottoms } = getTopsAndBottoms(nodes, outEdges, inEdges);
+updateSidebar({});
 addListenersToNodes();
 window.addEventListener("popstate", (evt) => {
-	console.log("popstate", evt.state);
-	if (evt.state.name) {
-		updateSelection(evt.state.name);
-	}
+		console.log("popstate", evt.state);
+		if (evt.state.name) {
+				updateSelection(evt.state.name);
+		}
 });
 svgPanZoom("#viz", {
-	maxZoom: 100
+		maxZoom: 100
 });
 `
