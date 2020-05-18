@@ -14,7 +14,7 @@ When you open the resulting HTML in a browser and hover over a node:
 It looks like this:
 
 ![dag view](./example/example.png)
-[Live Demo](https://amazing-feynman-ce1493.netlify.com/example.svg)
+[Live Demo](https://amazing-feynman-ce1493.netlify.com/example.html)
 
 ## Usage
 
