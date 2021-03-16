@@ -26,3 +26,8 @@ cat myfile.dot \
 ```
  
 ...and open up `out.svg` in your browser.
+
+## Installation
+
+1. install Go (TODO: prebuilt binary...)
+2. `go get github.com/vilterp/dagview`
