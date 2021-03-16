@@ -160,8 +160,8 @@ h2 {
 .node.hovered polygon,
 .node.selected-in.hovered polygon,
 .node.selected-out.hovered polygon {
-	fill: orange;
-	stroke: orange;
+	fill: orange !important;
+	stroke: orange !important;
 }
 .node.selected-in.selected-out polygon {
 	fill: purple;
