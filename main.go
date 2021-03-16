@@ -123,76 +123,80 @@ func getSvgChild(tree *etree.Document) *etree.Element {
 
 const Style = `
 #panel {
-		position: absolute;
-		height: 100vh;
-		right: 0;
-		top: 0;
-		width: 300px;
-		background: rgb(220, 220, 220, 0.9);
-		padding-left: 10px;
-		padding-right: 10px;
-		overflow: scroll;
+	position: absolute;
+	height: 100vh;
+	right: 0;
+	top: 0;
+	width: 300px;
+	background: rgb(220, 220, 220, 0.9);
+	padding-left: 10px;
+	padding-right: 10px;
+	overflow: scroll;
 }
 .node-name {
-		font-family: monospace;
-		cursor: pointer;
+	font-family: monospace;
+	cursor: pointer;
 }
 .node-name:hover {
-		color: orange;
+	color: orange;
 }
 h2 {
-		font-family: sans-serif;
+	font-family: sans-serif;
 }
 #selected-area {
-		color: red;
+	color: red;
 }
 #in-edges-list {
-		color: green;
+	color: green;
 }
 #out-edges-list {
-		color: blue;
+	color: blue;
 }
 
 .node polygon {
-    fill: #afeeee;
-    stroke: #afeeee;
+	fill: #afeeee;
+	stroke: #afeeee;
 }
 .node.hovered polygon,
 .node.selected-in.hovered polygon,
 .node.selected-out.hovered polygon {
-		fill: orange;
-		stroke: orange;
+	fill: orange;
+	stroke: orange;
+}
+.node.selected-in.selected-out polygon {
+	fill: purple;
+	stroke: purple;
 }
 .node.selected polygon {
-    fill: red;
-    stroke: red;
+	fill: red !important;
+	stroke: red !important;
 }
 .node.selected text {
-  	fill: white;
+	fill: white;
 }
 .node.selected-in polygon {
-    stroke: green;
-		fill: green;
+	stroke: green;
+	fill: green;
 }
 .node.selected-in text {
-  	fill: white;
+	fill: white;
 }
 .node.selected-out polygon {
-    stroke: blue;
-		fill: blue;
+	stroke: blue;
+	fill: blue;
 }
 .node.selected-out text {
-  fill: white;
+	fill: white;
 }
 
 .edge path {
-    stroke: black;
+	stroke: black;
 }
 .edge.selected-in path {
-    stroke: green;
+	stroke: green;
 }
 .edge.selected-out path {
-    stroke: blue;
+	stroke: blue;
 }
 `
 
